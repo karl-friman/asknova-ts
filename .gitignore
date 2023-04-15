@@ -1,0 +1,5 @@
+node_modules
+public/outputs
+uploads
+.env.local
+.DS_Store
