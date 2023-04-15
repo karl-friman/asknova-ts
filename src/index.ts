@@ -9,6 +9,16 @@ import path from "path";
 import fs from "fs";
 import multer from "multer";
 
+interface Voice {
+  id: string;
+  name: string;
+}
+
+interface Message {
+  role: ChatCompletionRequestMessageRoleEnum;
+  content: string;
+}
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "uploads/");
@@ -24,10 +34,16 @@ dotenv.config({ path: ".env.local" });
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY || "";
-const ELEVENLABS_VOICE_STABILITY = 0.3;
-const ELEVENLABS_VOICE_SIMILARITY = 0.75;
-const ELEVENLABS_VOICE_NAME = "Male Voice 2";
-let ELEVENLABS_ALL_VOICES: any[] = [];
+const ELEVENLABS_VOICE_STABILITY = 0.75;
+const ELEVENLABS_VOICE_SIMILARITY = 0.9;
+let ELEVENLABS_ALL_VOICES: Voice[] = [];
+
+if (!ELEVENLABS_API_KEY || !OPENAI_API_KEY) {
+  console.error(
+    "Missing API keys. Please set the ELEVENLABS_API_KEY and OPENAI_API_KEY environment variables."
+  );
+  process.exit(1);
+}
 
 const configuration = new Configuration({
   apiKey: OPENAI_API_KEY,
@@ -40,7 +56,7 @@ app.use(express.static("public"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-async function getVoices(): Promise<any[]> {
+async function getVoices(): Promise<Voice[]> {
   const url = "https://api.elevenlabs.io/v1/voices";
   const headers = {
     "xi-api-key": ELEVENLABS_API_KEY,
@@ -56,7 +72,7 @@ async function getVoices(): Promise<any[]> {
   }
 }
 
-async function generateReply(conversation: any[]): Promise<string> {
+async function generateReply(conversation: Message[]): Promise<string> {
   try {
     const completion = await openai.createChatCompletion({
       model: "gpt-3.5-turbo",
@@ -74,12 +90,7 @@ async function generateAudio(
   voice_id: string,
   output_path: string = ""
 ): Promise<string> {
-  const voices = ELEVENLABS_ALL_VOICES;
-  // const voice = voices.find((v: any) => v.name === ELEVENLABS_VOICE_NAME) || voices[0];
-  const voice = voices.find((v: any) => v.name === ELEVENLABS_VOICE_NAME) || voices[0];
-  //const voice_id = voice.voice_id;
   const url = `https://api.elevenlabs.io/v1/text-to-speech/${voice_id}`;
-  //const url = `https://api.elevenlabs.io/v1/text-to-speech/iuwRSSHZwVU2gtl4zxSD`;
   const headers = {
     "xi-api-key": ELEVENLABS_API_KEY,
     "content-type": "application/json",
