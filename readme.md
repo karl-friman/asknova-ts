@@ -24,6 +24,8 @@ It allows you to record audio, transcribe it, and then ask a question based on t
    `OPENAI_API_KEY = "YOUR API KEY HERE"`.  
    `ELEVENLABS_API_KEY = "YOUR API KEY HERE"`
 
+4. Create a folder called "uploads" in the root directory.
+
 ### ✨ Usage
 
 1. Start the server: `npm start`
